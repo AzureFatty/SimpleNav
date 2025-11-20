@@ -4,7 +4,7 @@
 
 一个现代、优雅且高度可定制的导航网站，使用 React 和 Vite 构建。具有精美的液态玻璃设计、动态主题和流畅的动画效果。
 
-![Simple Navigation 截图](/Users/zhou/.gemini/antigravity/brain/f89cd403-0f22-4822-b206-d54dc7901cbb/screenshot.png)
+![Simple Navigation 截图](./assets/Simple-Navigation-11-20-2025_04_19_PM.png)
 
 ## ✨ 特性
 
@@ -28,7 +28,7 @@
 1. **克隆仓库**
    ```bash
    git clone https://github.com/AzureFatty/SimpleNav.git
-   cd nav
+   cd SimpleNav
    ```
 
 2. **安装依赖**
@@ -46,22 +46,20 @@
 
 ### Docker 部署
 
-1. **使用 Docker Compose（推荐）**
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+# 下载 docker-compose.example.yml 并重命名
+curl -O https://raw.githubusercontent.com/AzureFatty/SimpleNav/main/docker-compose.example.yml
+mv docker-compose.example.yml docker-compose.yml
 
-2. **直接使用 Docker**
-   ```bash
-   # 构建镜像
-   docker build -t simple-nav .
-   
-   # 运行容器
-   docker run -d -p 80:80 simple-nav
-   ```
+# 启动
+docker compose up -d
+```
 
-3. **访问应用**
-   在浏览器中打开 `http://localhost`
+访问 `http://localhost`
+
+**自定义配置:** 从容器复制 `config.yml`,编辑后重启即可。
+
+**自定义图标:** 创建 `custom-icons` 文件夹后重启即可。
 
 ## ⚙️ 配置说明
 
@@ -154,7 +152,7 @@ npm run build
 ## 📁 项目结构
 
 ```
-nav/
+SimpleNav/
 ├── public/
 │   └── assets/
 │       ├── conf/

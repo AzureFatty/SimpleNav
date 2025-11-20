@@ -4,7 +4,7 @@
 
 A modern, elegant, and highly customizable navigation website built with React and Vite. Features a beautiful liquid glass design with dynamic themes and smooth animations.
 
-![Simple Navigation Screenshot](/Users/zhou/.gemini/antigravity/brain/f89cd403-0f22-4822-b206-d54dc7901cbb/screenshot.png)
+![Simple Navigation Screenshot](./assets/Simple-Navigation-11-20-2025_04_19_PM.png)
 
 ## ✨ Features
 
@@ -28,7 +28,7 @@ A modern, elegant, and highly customizable navigation website built with React a
 1. **Clone the repository**
    ```bash
    git clone https://github.com/AzureFatty/SimpleNav.git
-   cd nav
+   cd SimpleNav
    ```
 
 2. **Install dependencies**
@@ -46,22 +46,20 @@ A modern, elegant, and highly customizable navigation website built with React a
 
 ### Docker Deployment
 
-1. **Using Docker Compose (Recommended)**
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+# Download docker-compose.example.yml and rename it
+curl -O https://raw.githubusercontent.com/AzureFatty/SimpleNav/main/docker-compose.example.yml
+mv docker-compose.example.yml docker-compose.yml
 
-2. **Using Docker directly**
-   ```bash
-   # Build the image
-   docker build -t simple-nav .
-   
-   # Run the container
-   docker run -d -p 80:80 simple-nav
-   ```
+# Start
+docker compose up -d
+```
 
-3. **Access the application**
-   Open `http://localhost` in your browser
+Access at `http://localhost`
+
+**Custom config:** Copy `config.yml` from container, edit it, and restart.
+
+**Custom icons:** Create `custom-icons` folder and restart.
 
 ## ⚙️ Configuration
 
@@ -154,7 +152,7 @@ The built files will be in the `dist/` directory.
 ## 📁 Project Structure
 
 ```
-nav/
+SimpleNav/
 ├── public/
 │   └── assets/
 │       ├── conf/
