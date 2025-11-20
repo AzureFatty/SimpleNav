@@ -1,0 +1,9 @@
+services:
+  nav-web:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - ./public/assets/conf:/usr/share/caddy/assets/conf:ro
+      - ./public/assets/icons:/usr/share/caddy/assets/icons:ro
+    restart: always

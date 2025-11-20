@@ -1,0 +1,85 @@
+name: Build and Push Docker Image
+
+# 触发条件:当 push 到 main 分支,或者打 tag 时触发
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'     # 例如 v1.0.0, v2.1.0 等 tag 也会触发
+  workflow_dispatch:  # 允许手动触发
+
+# 设置并发控制,避免同时运行多个构建
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 设置权限
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. 设置 QEMU (支持多架构镜像构建,如 ARM 和 AMD)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 3. 设置 Docker Buildx (Docker 官方的高级构建工具)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 4. 登录 Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 5. 提取元数据 (自动处理 tags 和 labels)
+      # 这步很关键,它会自动把 git tag 转成 docker tag
+      # 例如:git tag v1.0.0 -> docker image:1.0.0, docker image:1.0, docker image:1, docker image:latest
+      # 如果是 push main 分支 -> docker image:main
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/simplenav
+          tags: |
+            # 对于 tag 推送,生成版本标签
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            # 对于 main 分支推送,生成 latest 标签
+            type=raw,value=latest,enable={{is_default_branch}}
+            # 对于 main 分支推送,也生成 main 标签
+            type=ref,event=branch
+            # Git commit SHA (短格式)
+            type=sha,prefix={{branch}}-
+          labels: |
+            org.opencontainers.image.title=SimpleNav
+            org.opencontainers.image.description=A modern, beautiful navigation website
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
+
+      # 6. 构建并推送到 Docker Hub
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          # 支持多平台(苹果 M 芯片 ARM64 和 Linux 服务器 AMD64)
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 启用缓存以加速构建
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # 构建参数
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
