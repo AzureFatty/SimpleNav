@@ -1,5 +1,5 @@
 services:
-  nav-web:
+  simple-nav:
     build: .
     ports:
       - "80:80"

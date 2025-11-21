@@ -7,6 +7,7 @@ import {
     Loader2
 } from 'lucide-react';
 import yaml from 'js-yaml';
+import { version } from '../package.json';
 
 // --- Logo 显示组件 ---
 const LogoDisplay = ({ src, alt, className }) => {
@@ -347,7 +348,7 @@ const App = () => {
             <footer className="relative z-10 border-t border-slate-200 bg-white/50 backdrop-blur-xl mt-12">
                 <div className="max-w-[1800px] mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        <span>{navConfig.settings?.footer || "Simple Nav"} v2.4</span>
+                        <span>{navConfig.settings?.footer || "Simple Nav"} v{version}</span>
                     </div>
                     <div className="flex gap-6 text-sm font-bold">
                         <a href={navConfig.settings?.actionButton?.url || "https://github.com/AzureFatty"}

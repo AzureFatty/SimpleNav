@@ -1,7 +1,7 @@
 services:
-  simplenav:
-    image: azurefatty/simplenav:latest
-    container_name: simplenav
+  simple-nav:
+    image: azurefatty/simple-nav:latest
+    container_name: simple-nav
     ports:
       - "80:80" # 将容器的 80 端口映射到主机的 80 端口
     volumes:
