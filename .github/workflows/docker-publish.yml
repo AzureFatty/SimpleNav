@@ -55,18 +55,10 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/simple-nav
           tags: |
-            # 使用 package.json 中的版本号
+            # 使用 package.json 中的版本号 (不带 v 前缀,例如: 2.4.0)
             type=raw,value=${{ steps.package_version.outputs.version }}
-            # 对于 tag 推送,生成版本标签
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            # 对于 main 分支推送,生成 latest 标签
-            type=raw,value=latest,enable={{is_default_branch}}
-            # 对于 main 分支推送,也生成 main 标签
-            type=ref,event=branch
-            # Git commit SHA (短格式)
-            type=sha,prefix={{branch}}-
+            # 始终生成 latest 标签
+            type=raw,value=latest
           labels: |
             org.opencontainers.image.title=SimpleNav
             org.opencontainers.image.description=A modern, beautiful navigation website
