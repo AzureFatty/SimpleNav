@@ -298,15 +298,15 @@ const App = () => {
                                 {section.items.map((item, itemIndex) => (
                                     <a key={itemIndex} href={item.url} target="_blank" rel="noopener noreferrer"
                                         className="group relative block h-full">
-                                        <div className={`h-full bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/30 rounded-2xl p-5 transition-all duration-300
-                        ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-white/50 hover:border-white/60
-                        flex items-center gap-4 relative overflow-hidden min-h-[100px] shadow-sm ring-1 ring-black/5`}>
+                                        <div className={`h-full bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-5 transition-all duration-300
+                        ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:bg-white/60
+                        flex items-center gap-4 relative overflow-hidden min-h-[100px] shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]`}>
 
                                             <div className={`absolute right-0 top-0 w-24 h-24 rounded-bl-[100px] ${section.themeColor}
-                            opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
+                            opacity-0 group-hover:opacity-30 transition-opacity duration-500 blur-2xl`}></div>
 
-                                            <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-white shadow-sm p-2
-                            transition-all duration-300 group-hover:scale-110 group-hover:shadow-md`}>
+                                            <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-white/80 shadow-sm p-2
+                            transition-all duration-300 group-hover:scale-110 group-hover:shadow-md backdrop-blur-sm`}>
                                                 <LogoDisplay src={item.logo} alt={item.name} className="w-full h-full" />
                                             </div>
 
@@ -318,7 +318,7 @@ const App = () => {
 
                                                     {item.tag && (
                                                         <span className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase font-bold 
-                                    bg-slate-100 text-slate-500 rounded-full transform group-hover:scale-105
+                                    bg-white/50 text-slate-600 rounded-full transform group-hover:scale-105 border border-white/50
                                     transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600`}>
                                                             {item.tag}
                                                         </span>
@@ -326,7 +326,7 @@ const App = () => {
                                                 </div>
                                                 {item.subtitle && (
                                                     <p
-                                                        className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed group-hover:text-slate-600">
+                                                        className="text-xs text-slate-600 font-medium line-clamp-2 leading-relaxed group-hover:text-slate-800">
                                                         {item.subtitle}
                                                     </p>
                                                 )}
@@ -334,7 +334,7 @@ const App = () => {
 
                                             <div
                                                 className="absolute bottom-3 right-3 opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <ArrowUpRight className="w-4 h-4 text-indigo-400" />
+                                                <ArrowUpRight className="w-4 h-4 text-indigo-500" />
                                             </div>
                                         </div>
                                     </a>
