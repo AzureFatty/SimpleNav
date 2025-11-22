@@ -2,6 +2,10 @@
 
 中文文档 | [English](./README.md)
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/azurefatty/simple-nav)](https://hub.docker.com/r/azurefatty/simple-nav)
+[![Image Size](https://img.shields.io/docker/image-size/azurefatty/simple-nav/latest)](https://hub.docker.com/r/azurefatty/simple-nav)
+[![Docker Image Version](https://img.shields.io/docker/v/azurefatty/simple-nav/latest)](https://hub.docker.com/r/azurefatty/simple-nav)
+
 一个现代、优雅且高度可定制的导航网站，使用 React 和 Vite 构建。具有精美的液态玻璃设计、动态主题和流畅的动画效果。
 
 ![Simple Navigation 截图](./assets/Simple-Navigation-11-20-2025_04_19_PM.png)

@@ -2,6 +2,10 @@
 
 [中文文档](./README_CN.md) | English
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/azurefatty/simple-nav)](https://hub.docker.com/r/azurefatty/simple-nav)
+[![Image Size](https://img.shields.io/docker/image-size/azurefatty/simple-nav/latest)](https://hub.docker.com/r/azurefatty/simple-nav)
+[![Docker Image Version](https://img.shields.io/docker/v/azurefatty/simple-nav/latest)](https://hub.docker.com/r/azurefatty/simple-nav)
+
 A modern, elegant, and highly customizable navigation website built with React and Vite. Features a beautiful liquid glass design with dynamic themes and smooth animations.
 
 ![Simple Navigation Screenshot](./assets/Simple-Navigation-11-20-2025_04_19_PM.png)
