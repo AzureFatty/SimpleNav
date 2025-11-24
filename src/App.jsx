@@ -36,6 +36,7 @@ const App = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isWideScreen, setIsWideScreen] = useState(true);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const searchInputRef = useRef(null);
 
     // 定义配色配置
@@ -215,10 +216,15 @@ const App = () => {
                         </div>
                     </div>
 
-                    <div className="w-full md:max-w-xl flex-1 relative group">
+                    <div className={`relative group flex-1 w-full transition-all duration-300 ease-in-out ${isSearchFocused ? 'lg:max-w-xl' : 'lg:max-w-[320px]'}`}>
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
-                        <input ref={searchInputRef} type="text" value={searchQuery} onChange={(e) =>
-                            setSearchQuery(e.target.value)}
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setIsSearchFocused(false)}
                             placeholder="Search resources..."
                             className="relative w-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl px-12 py-3 font-medium focus:outline-none
                 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300
