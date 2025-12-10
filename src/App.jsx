@@ -27,6 +27,30 @@ const LogoDisplay = ({ src, alt, className }) => {
     );
 };
 
+// 定义配色配置
+const themes = {
+    default: ['bg-cyan-200', 'bg-teal-200', 'bg-indigo-200'],
+    // 1. 海盐气泡 (极度清爽的蓝青色系)
+    ocean: ['bg-sky-200', 'bg-cyan-100', 'bg-blue-200'],
+    // 2. 樱花多福 (温柔的粉白调，适合女性向或浪漫场景)
+    sakura: ['bg-pink-200', 'bg-rose-100', 'bg-red-100'],
+    // 3. 抹茶森林 (护眼的绿色系，非常有生机)
+    matcha: ['bg-lime-200', 'bg-green-200', 'bg-emerald-100'],
+    // 4. 普罗旺斯 (静谧的紫调，显得高级且神秘)
+    lavender: ['bg-violet-200', 'bg-purple-100', 'bg-indigo-100'],
+    // 5. 柠檬海盐 (明亮活泼，像夏天的阳光)
+    lemonade: ['bg-yellow-200', 'bg-lime-100', 'bg-amber-100'],
+    // 6. 冰川时代 (极冷的灰蓝色调，适合科技感或极简风)
+    glacier: ['bg-slate-200', 'bg-cyan-100', 'bg-sky-100'],
+    // 7. 蜜桃乌龙 (暖调的橘粉色，治愈且亲切)
+    peach: ['bg-orange-100', 'bg-rose-200', 'bg-yellow-100'],
+    // 8. 暮光之城 (灰紫与靛青的结合，像傍晚的天空)
+    twilight: ['bg-indigo-200', 'bg-slate-200', 'bg-violet-100'],
+    // 9. 热带雨林 (蓝绿交织，比抹茶色更深邃一点)
+    tropical: ['bg-teal-200', 'bg-cyan-200', 'bg-emerald-200'],
+    // 10. 春日野餐 (粉、绿、黄撞色，像春天的花田)
+    spring: ['bg-green-100', 'bg-pink-100', 'bg-yellow-100'],
+};
 const App = () => {
     const [navConfig, setNavConfig] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -39,38 +63,11 @@ const App = () => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const searchInputRef = useRef(null);
 
-    // 定义配色配置
-    const themes = {
-        default: ['bg-cyan-200', 'bg-teal-200', 'bg-indigo-200'],
-        // 1. 海盐气泡 (极度清爽的蓝青色系)
-        ocean: ['bg-sky-200', 'bg-cyan-100', 'bg-blue-200'],
-        // 2. 樱花多福 (温柔的粉白调，适合女性向或浪漫场景)
-        sakura: ['bg-pink-200', 'bg-rose-100', 'bg-red-100'],
-        // 3. 抹茶森林 (护眼的绿色系，非常有生机)
-        matcha: ['bg-lime-200', 'bg-green-200', 'bg-emerald-100'],
-        // 4. 普罗旺斯 (静谧的紫调，显得高级且神秘)
-        lavender: ['bg-violet-200', 'bg-purple-100', 'bg-indigo-100'],
-        // 5. 柠檬海盐 (明亮活泼，像夏天的阳光)
-        lemonade: ['bg-yellow-200', 'bg-lime-100', 'bg-amber-100'],
-        // 6. 冰川时代 (极冷的灰蓝色调，适合科技感或极简风)
-        glacier: ['bg-slate-200', 'bg-cyan-100', 'bg-sky-100'],
-        // 7. 蜜桃乌龙 (暖调的橘粉色，治愈且亲切)
-        peach: ['bg-orange-100', 'bg-rose-200', 'bg-yellow-100'],
-        // 8. 暮光之城 (灰紫与靛青的结合，像傍晚的天空)
-        twilight: ['bg-indigo-200', 'bg-slate-200', 'bg-violet-100'],
-        // 9. 热带雨林 (蓝绿交织，比抹茶色更深邃一点)
-        tropical: ['bg-teal-200', 'bg-cyan-200', 'bg-emerald-200'],
-        // 10. 春日野餐 (粉、绿、黄撞色，像春天的花田)
-        spring: ['bg-green-100', 'bg-pink-100', 'bg-yellow-100'],
-    };
-
-    const [currentTheme, setCurrentTheme] = useState(themes.default);
-
-    useEffect(() => {
+    const [currentTheme, setCurrentTheme] = useState(() => {
         const themeKeys = Object.keys(themes);
         const randomKey = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-        setCurrentTheme(themes[randomKey]);
-    }, []);
+        return themes[randomKey];
+    });
 
     // Load configuration
     useEffect(() => {
@@ -144,6 +141,41 @@ const App = () => {
             }
         }
     }, [navConfig]);
+
+    // Update theme-color meta tag based on current theme
+    useEffect(() => {
+        if (!currentTheme || currentTheme.length === 0) return;
+
+        const getColorFromClass = (className) => {
+            const div = document.createElement('div');
+            div.className = className;
+            div.style.position = 'absolute';
+            div.style.visibility = 'hidden';
+            document.body.appendChild(div);
+            // Wait for styles to be applied? Usually immediate for class
+            const color = window.getComputedStyle(div).backgroundColor;
+            document.body.removeChild(div);
+            return color;
+        };
+
+        const updateThemeColor = () => {
+            // We use the first color of the theme (top-left blob)
+            const colorClass = currentTheme[0];
+            const color = getColorFromClass(colorClass);
+
+            let meta = document.querySelector("meta[name='theme-color']");
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.name = 'theme-color';
+                document.getElementsByTagName('head')[0].appendChild(meta);
+            }
+            meta.content = color;
+        };
+
+        // Small delay to ensure styles are loaded/applied if needed, though usually fine
+        requestAnimationFrame(updateThemeColor);
+
+    }, [currentTheme]);
 
     if (loading) {
         return (
