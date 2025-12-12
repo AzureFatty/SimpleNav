@@ -1,0 +1,18 @@
+:80 {
+    root * /usr/share/caddy
+    file_server
+
+    # Disable cache for config.yml and index.html to ensure immediate updates
+    @no_cache {
+        path /assets/conf/config.yml
+        path /index.html
+    }
+    header @no_cache Cache-Control "no-cache, no-store, must-revalidate"
+
+    # Cache other static assets (images, js, css) for 1 hour
+    @assets {
+        path /assets/*
+        not path /assets/conf/config.yml
+    }
+    header @assets Cache-Control "public, max-age=3600"
+}
