@@ -5,10 +5,10 @@ services:
     ports:
       - "80:80" # 将容器的 80 端口映射到主机的 80 端口
     volumes:
-      # 挂载自定义配置文件(可选)
-      - ./config.yml:/usr/share/caddy/assets/conf/config.yml:ro
-      # 挂载自定义图标目录(可选)
-      - ./custom-icons:/usr/share/caddy/assets/icons:ro
+      # 挂载自定义配置文件目录
+      - ./config:/usr/share/caddy/assets/conf
+      # 挂载自定义图标目录
+      - ./icons:/usr/share/caddy/assets/icons
     restart: unless-stopped
     environment:
       TZ: Asia/Shanghai

@@ -1,0 +1,21 @@
+# System & IDE Files
+.DS_Store
+.git
+.github
+.idea
+.vscode
+.env
+
+# Build & Dependencies
+node_modules
+dist
+
+# Docker Related
+Dockerfile
+docker-compose.yml
+docker-compose.example.yml
+.dockerignore
+
+# Docs
+README.md
+README_CN.md
