@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     Search,
     ArrowUpRight,
@@ -10,7 +10,7 @@ import yaml from 'js-yaml';
 import { version } from '../package.json';
 
 // --- Logo 显示组件 ---
-const LogoDisplay = ({ src, alt, className }) => {
+const LogoDisplay = ({ src, alt, className, loading = "eager" }) => {
     const [error, setError] = useState(false);
 
     if (error || !src) {
@@ -22,10 +22,91 @@ const LogoDisplay = ({ src, alt, className }) => {
     }
 
     return (
-        <img src={src} alt={alt} className={`${className} object-contain drop-shadow-sm`} onError={() => setError(true)}
+        <img src={src} alt={alt} loading={loading} className={`${className} object-contain drop-shadow-sm`} onError={() => setError(true)}
         />
     );
 };
+
+// --- 组件抽离与性能优化 (React.memo) ---
+const ItemCard = React.memo(({ item, sectionColor }) => {
+    return (
+        <a href={item.url} target="_blank" rel="noopener noreferrer"
+            className="group relative block h-full">
+            <div className={`h-full bg-white/80 border border-white/60 rounded-2xl p-5 transition-all duration-300
+ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:bg-white/95
+flex items-center gap-4 relative overflow-hidden min-h-[100px] shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]`}>
+
+                <div className={`absolute right-0 top-0 w-24 h-24 rounded-bl-[100px] ${sectionColor}
+opacity-0 group-hover:opacity-30 transition-opacity duration-500 blur-2xl`}></div>
+
+                <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-white/80 shadow-sm p-2
+transition-all duration-300 group-hover:scale-110 group-hover:shadow-md`}>
+                    <LogoDisplay src={item.logo} alt={item.name} loading="lazy" className="w-full h-full" />
+                </div>
+
+                <div className="flex-1 min-w-0 z-10">
+                    <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-base font-bold text-slate-800 truncate pr-2 group-hover:text-indigo-600 transition-colors">
+                            {item.name}
+                        </h3>
+
+                        {item.tag && (
+                            <span className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase font-bold 
+        bg-white/50 text-slate-600 rounded-full transform group-hover:scale-105 border border-white/50
+        transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600`}>
+                                {item.tag}
+                            </span>
+                        )}
+                    </div>
+                    {item.subtitle && (
+                        <p
+                            className="text-xs text-slate-600 font-medium line-clamp-2 leading-relaxed group-hover:text-slate-800">
+                            {item.subtitle}
+                        </p>
+                    )}
+                </div>
+
+                <div
+                    className="absolute bottom-3 right-3 opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                    <ArrowUpRight className="w-4 h-4 text-indigo-500" />
+                </div>
+            </div>
+        </a>
+    );
+});
+
+const Section = React.memo(({ section, index, activeSection, setActiveSection, columns }) => {
+    return (
+        <section className="relative" onMouseEnter={() => setActiveSection(section.id)}
+            onMouseLeave={() => setActiveSection(null)}
+        >
+            <div className="flex items-center gap-4 mb-6">
+                <div className={`w-10 h-10 ${section.themeColor} rounded-xl flex items-center
+    justify-center shadow-lg shadow-indigo-100 text-slate-900`}>
+                    <span className="text-sm font-black">{index + 1}</span>
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-800">{section.title}</h2>
+                <div className="flex-1 h-[2px] bg-slate-200 ml-4 relative overflow-hidden rounded-full [mask-image:linear-gradient(to_right,black,transparent)]">
+                    <div className={`absolute inset-0 ${section.themeColor} transform -translate-x-full
+        transition-transform duration-500 ease-out ${activeSection === section.id ? 'translate-x-0' : ''
+                        }`}></div>
+                </div>
+            </div>
+
+            <div className="grid gap-6" style={{
+                gridTemplateColumns: columns
+            }}>
+                {section.items.map((item, itemIndex) => (
+                    <ItemCard
+                        key={item.url || `${section.id || 'section'}-${item.name || 'item'}-${itemIndex}`}
+                        item={item}
+                        sectionColor={section.themeColor}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+});
 
 // 定义配色配置
 const themes = {
@@ -58,7 +139,6 @@ const App = () => {
 
     const [activeSection, setActiveSection] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isWideScreen, setIsWideScreen] = useState(true);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const searchInputRef = useRef(null);
@@ -111,19 +191,6 @@ const App = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(() => {
-        const handleMouseMove = (e) => {
-            requestAnimationFrame(() => {
-                setMousePos({
-                    x: (e.clientX / window.innerWidth) * 20 - 10,
-                    y: (e.clientY / window.innerHeight) * 20 - 10,
-                });
-            });
-        };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
-
     // Update page title and favicon
     useEffect(() => {
         if (navConfig?.settings) {
@@ -152,17 +219,13 @@ const App = () => {
             div.style.position = 'absolute';
             div.style.visibility = 'hidden';
             document.body.appendChild(div);
-            // Wait for styles to be applied? Usually immediate for class
             const color = window.getComputedStyle(div).backgroundColor;
             document.body.removeChild(div);
             return color;
         };
 
-        const updateThemeColor = () => {
-            // We use the first color of the theme (top-left blob)
-            const colorClass = currentTheme[0];
-            const color = getColorFromClass(colorClass);
-
+        requestAnimationFrame(() => {
+            const color = getColorFromClass(currentTheme[0]);
             let meta = document.querySelector("meta[name='theme-color']");
             if (!meta) {
                 meta = document.createElement('meta');
@@ -170,12 +233,21 @@ const App = () => {
                 document.getElementsByTagName('head')[0].appendChild(meta);
             }
             meta.content = color;
-        };
-
-        // Small delay to ensure styles are loaded/applied if needed, though usually fine
-        requestAnimationFrame(updateThemeColor);
-
+        });
     }, [currentTheme]);
+
+    const filteredSections = useMemo(() => {
+        if (!navConfig) return [];
+        const query = searchQuery.toLowerCase();
+        return navConfig.sections.map(section => ({
+            ...section,
+            items: section.items.filter(item =>
+                item.name.toLowerCase().includes(query) ||
+                (item.subtitle && item.subtitle.toLowerCase().includes(query)) ||
+                (item.tag && item.tag.toLowerCase().includes(query))
+            )
+        })).filter(section => section.items.length > 0);
+    }, [navConfig, searchQuery]);
 
     if (loading) {
         return (
@@ -195,27 +267,15 @@ const App = () => {
 
     if (!navConfig) return null;
 
-    const filteredSections = navConfig.sections.map(section => ({
-        ...section,
-        items: section.items.filter(item =>
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (item.subtitle && item.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (item.tag && item.tag.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-    })).filter(section => section.items.length > 0);
-
     return (
         <div
             className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white overflow-x-hidden relative">
 
-            {/* 动态背景 */}
+            {/* 静态背景 */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] ${currentTheme[0]} rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse`}
-                    style={{ transform: `translate(${mousePos.x * -2}px, ${mousePos.y * -2}px)` }}></div>
-                <div className={`absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] ${currentTheme[1]} rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse delay-1000`}
-                    style={{ transform: `translate(${mousePos.x * 2}px, ${mousePos.y * 2}px)` }}></div>
-                <div className={`absolute top-[40%] left-[40%] w-[30%] h-[30%] ${currentTheme[2]} rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-pulse delay-2000`}
-                    style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}></div>
+                <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] ${currentTheme[0]} rounded-full mix-blend-multiply filter blur-[120px] opacity-40`}></div>
+                <div className={`absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] ${currentTheme[1]} rounded-full mix-blend-multiply filter blur-[120px] opacity-40`}></div>
+                <div className={`absolute top-[40%] left-[40%] w-[30%] h-[30%] ${currentTheme[2]} rounded-full mix-blend-multiply filter blur-[100px] opacity-40`}></div>
                 <div
                     className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] bg-[size:40px_40px]">
                 </div>
@@ -228,7 +288,7 @@ const App = () => {
                         <div
                             className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300
                             ${navConfig.settings?.logo
-                                    ? 'bg-white/90 backdrop-blur-xl shadow-indigo-500/10 border border-white/50'
+                                    ? 'bg-white/90 backdrop-blur-sm shadow-indigo-500/10 border border-white/50'
                                     : 'bg-gradient-to-br from-indigo-600 to-violet-600 shadow-indigo-200 text-white'
                                 }`}>
                             {navConfig.settings?.logo ? (
@@ -258,7 +318,7 @@ const App = () => {
                             onFocus={() => setIsSearchFocused(true)}
                             onBlur={() => setIsSearchFocused(false)}
                             placeholder="Search resources..."
-                            className="relative w-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl px-12 py-3 font-medium focus:outline-none
+                            className="relative w-full bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl px-12 py-3 font-medium focus:outline-none
                 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300
                 placeholder:text-slate-400 shadow-sm text-lg"
                         />
@@ -285,7 +345,7 @@ const App = () => {
             {/* 通知栏 */}
             {navConfig.settings?.notification && (
                 <div className="max-w-[1800px] mx-auto px-6 md:px-8 mb-6">
-                    <div className="bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-xl border border-white/30 rounded-xl p-4 flex items-start gap-3 shadow-sm ring-1 ring-black/5">
+                    <div className="bg-gradient-to-br from-white/50 to-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4 flex items-start gap-3 shadow-sm ring-1 ring-black/5">
                         <div className="p-1 bg-indigo-100 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-indigo-600">
                                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
@@ -313,77 +373,20 @@ const App = () => {
                     </div>
                 ) : (
                     filteredSections.map((section, index) => (
-                        <section key={section.id} className="relative" onMouseEnter={() => setActiveSection(section.id)}
-                            onMouseLeave={() => setActiveSection(null)}
-                        >
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className={`w-10 h-10 ${section.themeColor} rounded-xl flex items-center
-                    justify-center shadow-lg shadow-indigo-100 text-slate-900`}>
-                                    <span className="text-sm font-black">{index + 1}</span>
-                                </div>
-                                <h2 className="text-2xl font-bold tracking-tight text-slate-800">{section.title}</h2>
-                                <div className="flex-1 h-[2px] bg-slate-200 ml-4 relative overflow-hidden rounded-full [mask-image:linear-gradient(to_right,black,transparent)]">
-                                    <div className={`absolute inset-0 ${section.themeColor} transform -translate-x-full
-                        transition-transform duration-500 ease-out ${activeSection === section.id ? 'translate-x-0' : ''
-                                        }`}></div>
-                                </div>
-                            </div>
-
-                            <div className="grid gap-6" style={{
-                                gridTemplateColumns: isWideScreen ?
-                                    `repeat(${navConfig.settings?.columns || 4}, minmax(0, 1fr))` : 'repeat(auto-fill, minmax(280px, 1fr))'
-                            }}>
-                                {section.items.map((item, itemIndex) => (
-                                    <a key={itemIndex} href={item.url} target="_blank" rel="noopener noreferrer"
-                                        className="group relative block h-full">
-                                        <div className={`h-full bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-5 transition-all duration-300
-                        ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:bg-white/60
-                        flex items-center gap-4 relative overflow-hidden min-h-[100px] shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]`}>
-
-                                            <div className={`absolute right-0 top-0 w-24 h-24 rounded-bl-[100px] ${section.themeColor}
-                            opacity-0 group-hover:opacity-30 transition-opacity duration-500 blur-2xl`}></div>
-
-                                            <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-white/80 shadow-sm p-2
-                            transition-all duration-300 group-hover:scale-110 group-hover:shadow-md backdrop-blur-sm`}>
-                                                <LogoDisplay src={item.logo} alt={item.name} className="w-full h-full" />
-                                            </div>
-
-                                            <div className="flex-1 min-w-0 z-10">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <h3 className="text-base font-bold text-slate-800 truncate pr-2 group-hover:text-indigo-600 transition-colors">
-                                                        {item.name}
-                                                    </h3>
-
-                                                    {item.tag && (
-                                                        <span className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase font-bold 
-                                    bg-white/50 text-slate-600 rounded-full transform group-hover:scale-105 border border-white/50
-                                    transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600`}>
-                                                            {item.tag}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {item.subtitle && (
-                                                    <p
-                                                        className="text-xs text-slate-600 font-medium line-clamp-2 leading-relaxed group-hover:text-slate-800">
-                                                        {item.subtitle}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div
-                                                className="absolute bottom-3 right-3 opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <ArrowUpRight className="w-4 h-4 text-indigo-500" />
-                                            </div>
-                                        </div>
-                                    </a>
-                                ))}
-                            </div>
-                        </section>
+                        <Section
+                            key={section.id || index}
+                            section={section}
+                            index={index}
+                            activeSection={activeSection}
+                            setActiveSection={setActiveSection}
+                            columns={isWideScreen ?
+                                `repeat(${navConfig.settings?.columns || 4}, minmax(0, 1fr))` : 'repeat(auto-fill, minmax(280px, 1fr))'}
+                        />
                     ))
                 )}
             </main>
 
-            <footer className="relative z-10 border-t border-slate-200 bg-white/50 backdrop-blur-xl mt-12">
+            <footer className="relative z-10 border-t border-slate-200 bg-white/60 backdrop-blur-sm mt-12">
                 <div className="max-w-[1800px] mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                         <span>{navConfig.settings?.footer || "Simple Nav"} v{version}</span>
@@ -404,12 +407,7 @@ const App = () => {
                 </div>
             </footer>
 
-            {/* Force Tailwind to generate dynamic classes */}
-            <div className="hidden">
-                <div className="bg-yellow-300 group-hover:text-yellow-700 group-hover:bg-yellow-100 group-hover:border-yellow-700"></div>
-                <div className="bg-blue-300 group-hover:text-blue-700 group-hover:bg-blue-100 group-hover:border-blue-700"></div>
-                <div className="bg-pink-300 group-hover:text-pink-600 group-hover:bg-pink-100 group-hover:border-pink-600"></div>
-            </div>
+            {/* Force Tailwind to generate dynamic classes (Removed, safelist in tailwind.config.js is responsible for this now) */}
         </div>
     );
 };
